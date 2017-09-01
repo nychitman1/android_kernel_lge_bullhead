@@ -321,9 +321,12 @@ int nanohub_spi_read(void *data, uint8_t *rx, int max_length, int timeout)
 	if (ret == 0) {
 		if (offset > 0) {
 			packet = (struct nanohub_packet *)rx;
-			memcpy(&rx[offset], comms->rx_buffer, xfer.len);
-			spi_data->rx_length = xfer.len;
-			spi_data->rx_offset = min_size + packet->len - offset;
+			if (offset + xfer.len > max_length)
+				memcpy(&rx[offset], comms->rx_buffer,
+					max_length - offset);
+			else
+				memcpy(&rx[offset], comms->rx_buffer, xfer.len);
+			spi_data->rx_offset = spi_data->rx_length = 0;
 		} else {
 			for (i = 0; i < xfer.len; i++) {
 				if (comms->rx_buffer[i] != 0xFF) {
